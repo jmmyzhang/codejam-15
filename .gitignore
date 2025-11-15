@@ -213,3 +213,11 @@ models/
 *.h5
 *.pth
 *.pt
+
+# WLASL dataset (large video files)
+dataset/
+wlasl/
+*.mp4
+*.avi
+*.mov
+*.mkv

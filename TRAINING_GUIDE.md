@@ -1,6 +1,6 @@
-# ASL Model Training Guide
+# ASL Model Training Guide - WLASL Dataset
 
-This guide explains how to train an ASL recognition model for WaveSL using a large dataset.
+This guide explains how to train an ASL recognition model for WaveSL using the **WLASL (Word-Level American Sign Language)** dataset.
 
 ## Overview
 
@@ -32,42 +32,49 @@ dataset/
 
 Each subdirectory represents a sign class, containing video files of that sign.
 
-### Recommended Datasets
+### WLASL Dataset
 
-1. **WLASL (Word-Level American Sign Language)**
-   - 2,000 common ASL words
-   - Download: https://github.com/dxli94/WLASL
-   - Large vocabulary, good for production use
+**WaveSL uses the WLASL (Word-Level American Sign Language) dataset.**
 
-2. **MS-ASL (Microsoft American Sign Language)**
-   - Multiple subsets (ASL100, ASL1000)
-   - Download: https://www.microsoft.com/en-us/research/project/ms-asl/
-   - Well-annotated, good benchmark dataset
+- **2,000 common ASL words** - Large vocabulary for production use
+- **Download**: https://github.com/dxli94/WLASL
+- **Structure**: Videos organized by gloss (sign name) with JSON annotations
+- **Format**: MP4 video files with corresponding annotation files
 
-3. **ASL Citizen**
-   - Community-contributed dataset
-   - Download: https://github.com/nesl/asl-citizen
-   - Diverse signers, real-world conditions
+#### Downloading WLASL
 
-4. **Custom Dataset**
-   - Record your own videos
-   - Ensure consistent lighting and camera angle
-   - Multiple signers and variations improve robustness
+1. Visit the [WLASL GitHub repository](https://github.com/dxli94/WLASL)
+2. Follow their download instructions (may require request/approval)
+3. Download both:
+   - Video files (videos directory)
+   - Annotation files (JSON files with gloss mappings)
+4. Extract to a directory (e.g., `~/wlasl/`)
 
-## Step-by-Step Training
+## Step-by-Step Training with WLASL
 
-### Step 1: Prepare Your Dataset
+### Step 1: Download WLASL Dataset
 
-If your videos aren't organized yet:
+Download the WLASL dataset following their instructions. You should have:
+- A `videos/` directory with all video files
+- JSON annotation files mapping video IDs to glosses (sign names)
+
+### Step 2: Prepare WLASL Dataset
+
+Use the preparation script to organize WLASL videos:
 
 ```bash
-# Create class mapping from existing structure
-python src/prepare_dataset.py mapping --data-dir /path/to/dataset --output-file class_mapping.json
+python src/prepare_wlasl.py \
+    --wlasl-dir ~/wlasl \
+    --output-dir dataset/wlasl \
+    --class-mapping models/wlasl_class_mapping.json
 ```
 
-Or manually organize videos into class directories.
+This script will:
+- Read WLASL annotations
+- Organize videos into class directories (by gloss/sign name)
+- Create a class mapping JSON file
 
-### Step 2: Train the Model
+### Step 3: Train the Model
 
 ```bash
 # Activate virtual environment
@@ -82,7 +89,7 @@ python src/train_asl_model.py \
     --learning-rate 0.001
 ```
 
-### Step 3: Monitor Training
+### Step 4: Monitor Training
 
 The training script will:
 - Print training and validation accuracy each epoch
@@ -90,7 +97,7 @@ The training script will:
 - Save a final model at the end
 - Create a `class_mapping.json` file
 
-### Step 4: Use the Trained Model
+### Step 5: Use the Trained Model
 
 After training, update `src/asl_recognizer.py`:
 
@@ -239,10 +246,37 @@ print(f"Test Accuracy: {accuracy:.2f}%")
 4. **Refine**: Adjust model architecture and training parameters
 5. **Deploy**: Integrate trained model into WaveSL application
 
+## WLASL-Specific Notes
+
+### Dataset Size
+
+WLASL contains up to 2,000 sign classes. For initial training, you may want to:
+- Start with a subset (e.g., top 100 or 200 most common signs)
+- Filter by minimum number of samples per class
+- Use class balancing to handle imbalanced data
+
+### Vocabulary Selection
+
+You can train on:
+- **WLASL-100**: Top 100 most common signs
+- **WLASL-300**: Top 300 signs
+- **WLASL-1000**: Top 1000 signs
+- **WLASL-2000**: Full vocabulary
+
+Adjust the dataset preparation to filter classes as needed.
+
+### Performance Expectations
+
+With WLASL dataset:
+- **WLASL-100**: Expect 80-90% accuracy with good data
+- **WLASL-300**: Expect 70-85% accuracy
+- **WLASL-1000+**: Expect 60-75% accuracy (more challenging)
+
 ## Resources
 
 - [PyTorch Tutorials](https://pytorch.org/tutorials/)
 - [MediaPipe Hands Documentation](https://google.github.io/mediapipe/solutions/hands)
-- [WLASL Dataset](https://github.com/dxli94/WLASL)
+- [WLASL Dataset Repository](https://github.com/dxli94/WLASL)
+- [WLASL Paper](https://arxiv.org/abs/2004.01988)
 - [Sign Language Recognition Papers](https://paperswithcode.com/task/sign-language-recognition)
 

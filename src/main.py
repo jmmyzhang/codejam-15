@@ -10,6 +10,7 @@ import threading
 import queue
 import time
 from typing import Optional
+from pathlib import Path
 
 from asl_recognizer import ASLRecognizer
 from tts_engine import TTSEngine
@@ -33,6 +34,14 @@ class WaveSLApp:
         self.cap = None
         
         # Initialize components
+        # Default to WLASL model if no model path specified
+        if model_path is None:
+            # Try to find WLASL model in default location
+            default_model = Path('models/wlasl/best_model.pt')
+            if default_model.exists():
+                model_path = str(default_model)
+                print(f"Using default WLASL model: {model_path}")
+        
         self.asl_recognizer = ASLRecognizer(model_path=model_path)
         self.tts_engine = TTSEngine()
         self.audio_output = AudioOutput(device_name=audio_device)

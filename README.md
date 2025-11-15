@@ -1,6 +1,8 @@
 # Smile and Wave!
 WaveSL removes the need for sign language interpreters over video call, translating real-time ASL into realistic voice and subtitle outputs.
 
+**Note**: This project uses the WLASL (Word-Level American Sign Language) dataset for training ASL recognition models.
+
 ## Overview
 
 WaveSL creates a virtual video device (via OBS) and virtual audio device (via BlackHole) that can be used in Zoom, Discord, or any video conferencing application. The program:
@@ -125,36 +127,63 @@ python src/main.py --list-audio
 
 ## Model Setup
 
-### Using a Pre-trained Model
+### Using WLASL Dataset
 
-If you have a trained model:
+WaveSL is designed to work with models trained on the **WLASL (Word-Level American Sign Language)** dataset.
+
+#### Step 1: Download WLASL Dataset
+
+1. Visit the [WLASL repository](https://github.com/dxli94/WLASL)
+2. Follow their instructions to download the dataset
+3. Extract the dataset to a directory (e.g., `~/wlasl/`)
+
+#### Step 2: Prepare WLASL Dataset
+
+Organize the WLASL videos into the training format:
 
 ```bash
-python src/main.py --model models/best_model.pt
+python src/prepare_wlasl.py --wlasl-dir ~/wlasl --output-dir dataset/wlasl
 ```
 
-The model should be a PyTorch state dict (`.pt` file) and there should be a `class_mapping.json` file in the same directory.
+This will:
+- Organize videos by sign class (gloss)
+- Create a class mapping file at `models/wlasl_class_mapping.json`
 
-### Training Your Own Model
+#### Step 3: Train WLASL Model
 
-See **[TRAINING_GUIDE.md](TRAINING_GUIDE.md)** for a complete guide on training an ASL recognition model.
+Train the model on the prepared WLASL dataset:
 
-Quick start:
-1. Organize your dataset: `dataset/sign_name/video1.mp4, video2.mp4, ...`
-2. Train the model:
-   ```bash
-   python src/train_asl_model.py --data-dir dataset --output-dir models --epochs 50
-   ```
-3. Use the trained model:
-   ```bash
-   python src/main.py --model models/best_model.pt
-   ```
+```bash
+python src/train_asl_model.py \
+    --data-dir dataset/wlasl \
+    --output-dir models/wlasl \
+    --epochs 50 \
+    --batch-size 32
+```
 
-The training pipeline:
-- Uses MediaPipe to extract hand landmarks (consistent with inference)
-- Trains a PyTorch neural network classifier
-- Automatically creates class mappings
-- Saves the best model based on validation accuracy
+#### Step 4: Use the Trained Model
+
+The application will automatically use the WLASL model if it's in the default location:
+
+```bash
+python src/main.py
+```
+
+Or specify the model path explicitly:
+
+```bash
+python src/main.py --model models/wlasl/best_model.pt
+```
+
+### Model Details
+
+- **Dataset**: WLASL (Word-Level American Sign Language)
+- **Vocabulary**: Up to 2,000 common ASL words
+- **Architecture**: Neural network classifier using MediaPipe hand landmarks
+- **Input**: Hand landmark features extracted from video frames
+- **Output**: Sign class predictions mapped to text
+
+See **[TRAINING_GUIDE.md](TRAINING_GUIDE.md)** for detailed training instructions and tips.
 
 ## Troubleshooting
 
