@@ -1,0 +1,7 @@
+opencv-python
+mediapipe
+pytorch
+pyvirtualcam
+sounddevice
+coqui-tts
+numpy
