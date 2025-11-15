@@ -97,27 +97,55 @@ class ASLRecognizer:
                 state_dict = torch.load(model_path, map_location=self.device)
                 
                 # Determine model architecture from class mapping or state dict
-                num_classes = len(self.class_mapping) if self.class_mapping else state_dict.get('network.6.weight', torch.empty(0)).shape[0]
-                input_size = state_dict.get('network.0.weight', torch.empty(0)).shape[1] if len(state_dict) > 0 else 146
+                if self.class_mapping:
+                    num_classes = len(self.class_mapping)
+                else:
+                    # Try to infer from state dict
+                    # Look for the last linear layer weight
+                    last_layer_key = None
+                    for key in reversed(list(state_dict.keys())):
+                        if 'weight' in key and 'network' in key:
+                            last_layer_key = key
+                            break
+                    if last_layer_key:
+                        num_classes = state_dict[last_layer_key].shape[0]
+                    else:
+                        raise ValueError("Could not determine num_classes from state dict")
+                
+                # Determine input size from first layer
+                first_layer_key = None
+                for key in sorted(state_dict.keys()):
+                    if 'weight' in key and 'network' in key:
+                        first_layer_key = key
+                        break
+                if first_layer_key:
+                    input_size = state_dict[first_layer_key].shape[1]
+                else:
+                    input_size = 146  # Default for 2 hands
                 
                 # Create model with correct architecture
                 self.model = ASLModel(input_size=input_size, num_classes=num_classes)
                 self.model.load_state_dict(state_dict)
                 self.model.to(self.device)
                 self.model.eval()
-                print(f"Loaded ASL model from {model_path}")
-                print(f"Model architecture: input_size={input_size}, num_classes={num_classes}")
+                print(f"✓ Loaded pre-trained WLASL model from {model_path}")
+                print(f"  Model architecture: input_size={input_size}, num_classes={num_classes}")
+                if self.reverse_mapping:
+                    print(f"  Vocabulary size: {len(self.reverse_mapping)} signs")
             except Exception as e1:
                 # Try loading as TorchScript model
                 try:
                     self.model = torch.jit.load(model_path, map_location=self.device)
                     self.model.eval()
-                    print(f"Loaded ASL model (TorchScript) from {model_path}")
+                    print(f"✓ Loaded pre-trained WLASL model (TorchScript) from {model_path}")
                 except Exception as e2:
-                    print(f"Warning: Could not load model from {model_path}")
-                    print(f"State dict error: {e1}")
-                    print(f"TorchScript error: {e2}")
-                    print("Using placeholder recognition")
+                    print(f"✗ Error: Could not load pre-trained model from {model_path}")
+                    print(f"  State dict error: {e1}")
+                    print(f"  TorchScript error: {e2}")
+                    print("  Using placeholder recognition (no model loaded)")
+                    print("  To use a trained model, train one first:")
+                    print("    ./train_wlasl_model.sh")
+                    print("  Or see SETUP_WLASL.md for instructions")
         except Exception as e:
             print(f"Error loading model: {e}")
             print("Using placeholder recognition")

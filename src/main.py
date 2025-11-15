@@ -34,13 +34,18 @@ class WaveSLApp:
         self.cap = None
         
         # Initialize components
-        # Default to WLASL model if no model path specified
+        # Default to WLASL pre-trained model if no model path specified
         if model_path is None:
-            # Try to find WLASL model in default location
+            # Try to find WLASL pre-trained model in default location
             default_model = Path('models/wlasl/best_model.pt')
             if default_model.exists():
                 model_path = str(default_model)
-                print(f"Using default WLASL model: {model_path}")
+                print(f"Using pre-trained WLASL model: {model_path}")
+            else:
+                print("No pre-trained WLASL model found.")
+                print("To train a model, see SETUP_WLASL.md or run:")
+                print("  ./train_wlasl_model.sh")
+                print("Continuing with placeholder recognition...")
         
         self.asl_recognizer = ASLRecognizer(model_path=model_path)
         self.tts_engine = TTSEngine()

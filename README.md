@@ -127,63 +127,42 @@ python src/main.py --list-audio
 
 ## Model Setup
 
-### Using WLASL Dataset
+### Using Pre-trained WLASL Model
 
-WaveSL is designed to work with models trained on the **WLASL (Word-Level American Sign Language)** dataset.
+WaveSL uses a **pre-trained model** based on the WLASL (Word-Level American Sign Language) dataset. The model is trained **once** and then used for inference - no training happens when you run the application.
 
-#### Step 1: Download WLASL Dataset
+#### Quick Start (If Model Already Trained)
 
-1. Visit the [WLASL repository](https://github.com/dxli94/WLASL)
-2. Follow their instructions to download the dataset
-3. Extract the dataset to a directory (e.g., `~/wlasl/`)
-
-#### Step 2: Prepare WLASL Dataset
-
-Organize the WLASL videos into the training format:
+If you already have a trained model:
 
 ```bash
-python src/prepare_wlasl.py --wlasl-dir ~/wlasl --output-dir dataset/wlasl
-```
-
-This will:
-- Organize videos by sign class (gloss)
-- Create a class mapping file at `models/wlasl_class_mapping.json`
-
-#### Step 3: Train WLASL Model
-
-Train the model on the prepared WLASL dataset:
-
-```bash
-python src/train_asl_model.py \
-    --data-dir dataset/wlasl \
-    --output-dir models/wlasl \
-    --epochs 50 \
-    --batch-size 32
-```
-
-#### Step 4: Use the Trained Model
-
-The application will automatically use the WLASL model if it's in the default location:
-
-```bash
+# The app will automatically find models/wlasl/best_model.pt
 python src/main.py
 ```
 
-Or specify the model path explicitly:
+#### First-Time Setup: Train the Model
 
-```bash
-python src/main.py --model models/wlasl/best_model.pt
-```
+**You only need to do this once!** After training, the model is saved and ready to use.
 
-### Model Details
+See **[SETUP_WLASL.md](SETUP_WLASL.md)** for complete setup instructions.
+
+Quick summary:
+1. **Download WLASL dataset** from [WLASL repository](https://github.com/dxli94/WLASL)
+2. **Prepare dataset**: `python src/prepare_wlasl.py --wlasl-dir ~/wlasl --output-dir dataset/wlasl`
+3. **Train model** (one time): `./train_wlasl_model.sh`
+4. **Use pre-trained model**: `python src/main.py` (no training needed!)
+
+#### Model Details
 
 - **Dataset**: WLASL (Word-Level American Sign Language)
 - **Vocabulary**: Up to 2,000 common ASL words
 - **Architecture**: Neural network classifier using MediaPipe hand landmarks
 - **Input**: Hand landmark features extracted from video frames
 - **Output**: Sign class predictions mapped to text
+- **Training**: Done once, model saved to `models/wlasl/best_model.pt`
+- **Inference**: Fast, real-time recognition using pre-trained model
 
-See **[TRAINING_GUIDE.md](TRAINING_GUIDE.md)** for detailed training instructions and tips.
+**Important**: The application uses a **pre-trained model** - it does NOT train on startup. Training is a one-time setup step.
 
 ## Troubleshooting
 
