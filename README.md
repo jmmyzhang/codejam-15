@@ -1,4 +1,5 @@
-# codejam-15
-CodeJam15 project
+# Smile and Wave!
+WaveSL removes the need for sign language interpreters over video call, translating real-time ASL into realistic voice and subtitle outputs.
 
-pip install -r requirements.txt
+# Get Started:
+- pip install -r requirements.txt
