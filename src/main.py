@@ -19,19 +19,21 @@ from audio_output import AudioOutput
 class WaveSLApp:
     """Main application class for WaveSL"""
     
-    def __init__(self, camera_index: int = 0, audio_device: Optional[str] = None):
+    def __init__(self, camera_index: int = 0, audio_device: Optional[str] = None, 
+                 model_path: Optional[str] = None):
         """
         Initialize WaveSL application
         
         Args:
             camera_index: Index of the physical camera to use
             audio_device: Name of the audio output device (BlackHole). If None, uses default.
+            model_path: Path to trained ASL model (.pt file). If None, uses placeholder.
         """
         self.camera_index = camera_index
         self.cap = None
         
         # Initialize components
-        self.asl_recognizer = ASLRecognizer()
+        self.asl_recognizer = ASLRecognizer(model_path=model_path)
         self.tts_engine = TTSEngine()
         self.audio_output = AudioOutput(device_name=audio_device)
         
@@ -207,6 +209,8 @@ def main():
     parser.add_argument('--camera', type=int, default=0, help='Camera index (default: 0)')
     parser.add_argument('--audio-device', type=str, default=None, 
                        help='Audio output device name (e.g., "BlackHole 2ch" for BlackHole). Use --list-audio to see available devices.')
+    parser.add_argument('--model', type=str, default=None,
+                       help='Path to trained ASL model (.pt file). If not provided, uses placeholder recognition.')
     parser.add_argument('--list-audio', action='store_true', 
                        help='List available audio output devices and exit')
     
@@ -220,7 +224,8 @@ def main():
         return
     
     # Create and run application
-    app = WaveSLApp(camera_index=args.camera, audio_device=args.audio_device)
+    app = WaveSLApp(camera_index=args.camera, audio_device=args.audio_device, 
+                    model_path=args.model)
     
     try:
         app.start()

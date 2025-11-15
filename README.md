@@ -125,12 +125,36 @@ python src/main.py --list-audio
 
 ## Model Setup
 
-To use a custom ASL recognition model:
+### Using a Pre-trained Model
 
-1. Train or obtain a PyTorch model that takes hand landmark features as input
-2. Save the model as a `.pt` file
-3. Update `asl_recognizer.py` to load your model and map class indices to sign text
-4. The model should expect input features extracted from MediaPipe hand landmarks
+If you have a trained model:
+
+```bash
+python src/main.py --model models/best_model.pt
+```
+
+The model should be a PyTorch state dict (`.pt` file) and there should be a `class_mapping.json` file in the same directory.
+
+### Training Your Own Model
+
+See **[TRAINING_GUIDE.md](TRAINING_GUIDE.md)** for a complete guide on training an ASL recognition model.
+
+Quick start:
+1. Organize your dataset: `dataset/sign_name/video1.mp4, video2.mp4, ...`
+2. Train the model:
+   ```bash
+   python src/train_asl_model.py --data-dir dataset --output-dir models --epochs 50
+   ```
+3. Use the trained model:
+   ```bash
+   python src/main.py --model models/best_model.pt
+   ```
+
+The training pipeline:
+- Uses MediaPipe to extract hand landmarks (consistent with inference)
+- Trains a PyTorch neural network classifier
+- Automatically creates class mappings
+- Saves the best model based on validation accuracy
 
 ## Troubleshooting
 
